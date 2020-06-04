@@ -12,10 +12,17 @@ metadata = initial_setup(CORPUS_NAME)[0]
 model_ = build_seq2seq_model(vocabulary_size)
 load_model_weights(model_)
 
-seeds = ["come home", "hillary had nothing to do",
+
+seeds = ["I want to eat burger", "come home", "hillary had nothing to do",
          "only reason i can exercise is because i can breathe now", "i never heard of it until you mentioned it"]
 
-for seed in seeds:
+while True:
+    print("Type quit for exist the prompt")
+    seed = input(">")
+
+    if seed == 'quit':
+        break
+
     print("Query >", seed)
 
     inference = init_inference(model_, word2idx, idx2word, unk_id, start_id)

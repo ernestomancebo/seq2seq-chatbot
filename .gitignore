@@ -16,3 +16,12 @@ model.npz
 env/
 venv/
 .idea/
+
+doc/*.aux
+doc/*.bcf
+doc/*.dvi
+doc/*.fdb_latexmk
+doc/*.fls
+doc/*.log
+doc/*.run.xml
+doc/*.synctex.gz 
