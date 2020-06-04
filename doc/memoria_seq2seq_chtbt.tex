@@ -11,6 +11,7 @@
 \usepackage[normalem]{ulem}
 \usepackage{subcaption}
 \usepackage{authblk}
+\usepackage{array}
 
 % Parragraph formatting
 \setlength{\parskip}{1em}
@@ -106,38 +107,51 @@
             \caption{Composición interna de una LSTM.}
         \end{figure}
 
-        Definiendo cada elemento de la celda de la siguiente manera:
-        $
-            \begin{aligned}
-            f_t  & = \sigma(W_f\dot{\[h_{t-1},x_t\]} + b_f) \\
-            i_t & = \sigma(W_i\dot{\[h_{t-1}, x_t\]} + b_i) \\
-            \tilde{C}_t & = \text{tanh}(W_c\dot{\[h_{t-1}, x_t\]} +b_C) \\
-            o_t & = \sigma(W_o\dot{\[h_{t-1}, x_t\]} + b_o) \\
-            h_t & =  o_t*\text{tanh}(C_t)
-            \end{aligned}
-        $
-        Donde decimos que:
+        Como se puede apreciar la red está compuerta por varias compuertas (\emph{gates}) los cuales tienen la tarea de agregar o eliminar data al estádo de la celda. Cada celda es controlada por una capa que se apoya en la función sigmoide ($\sigma$) y la operación producto. Es preciso resalta que la función sigmoide retorna un valor entre cero y uno, siendo cero \emph{no pase información} y uno \emph{pase toda la información}. Finalmente, una LSTM contiene tres compuertas $\sigma$ descritas de la siguiente manera:
+
         \begin{itemize}
-            \item $W$ representa las matrices de pesos de la red.
-            \item $x_t$ representa el vector de entrada en un tiempo t
-            \item $h_{t-1}$ representa el vector de salida producido en la computación previa.
-            \item $C_{t-1}$ representa la celda estado(por algunos llamado memoria) producida en la computación previa.
-            \item $b$ representa el conjunto de sesgos o \emph{bias}.
-            \item $\sigma$ epresenta la función de activación Sigmoide o Sigmoid(en inglés), la cual consiste en transformar el valor de entrada en una escala de 0.0 a 1.0, los valores mayores de 1.0 son transformados a 1.0 y viceversa.
-            \item \emph{tanh} epresenta la función de activación Tangente Hiperbólica o tanh, en cambio esta consiste en transformar el valor de entrada en una escala entre -1.0 y 1.0. Se dice que para muchos casos esta función permite conseguir un mejor rendimiento y es más fácil de entrenar, que la función sigmoide.
-            \item La celda $C$ aprende a memorizar información basado en conexiones recursivas entre celdas.
-            \item $i$ representa la compuerta de entrada utilizada para controlar el flujo de error de las $C$ celdas de estado de entrada(inputs cell state), y así evitar los problema con los pesos de entrada que ocurre en las RNN tradicionales, donde el mismo peso es utilizado para decidir qué información de entrada retener y cuál descartar.
-            \item $o$ representa la compuerta de salida que controla el flujo de error de las celdas de estado de salida(outputs cell state) c, por la misma razón para evitar los problemas que ocurren en las RNN tradicionales.
-            \item $i$ permite a la red decidir cuándo escribir información en c, y ocuándo leer información desde c, ambas representan lo que podemos denominar como bloque de memoria de la red LSTM.
-            \item $f$ es una compuerta de olvido utilizada para limpiar la memoria y ayuda a la red a modelar secuencias continuas.
+            \item $f_t$ o \emph{"Puerta del Olvido"}, decide qué dato se debe de descartar en el estado de la celda tras observar los valores de $h_{t-1}$ y $x_t$, retornando un número entre cero y uno para cada valor en el estado $C_{t-1}$.
+            \begin{equation}
+                f_t = \sigma(W_f\cdot{[h_{t-1},x_t]} + b_f) 
+            \end{equation}
+
+            En un problema de modelado del lenguaje, $f_t$ trataría de predecir la siguiente palabra a partir de las anteriores. De modo que para un primer sujeto trataría de inferir en su género, sin embargo, para un siguiente sujeto la celda olvidaría el género del primero y tratára de identificar el del segundo.
+
+            \item En el siguiente paso se decide qué información se debe de persistir en la celda tras dos pasos, primero la capa sigmoide llamada \emph{"Capa Puerta de Entrada"} la cual decide qué valor se actualiza seguido de la creación de nuevos candidatos tras una capa que utiliza la Tangente Hiperbólica crea un vector de nuevos candidatos $\tilde{C_t}$. Estas luego se combinan y actualizan el estado de la celda en cuestión.
+            \begin{equation}
+                \begin{aligned}
+                    i_t &= \sigma(W_i\cdot{[h_{t-1}, x_t]} + b_i) \\
+                    \tilde{C}_t &= \text{tanh}(W_c\cdot{[h_{t-1}, x_t]} +b_C)
+                \end{aligned}
+            \end{equation}
+
+            Siguiendo la línea del modelado del lenguaje, para el segundo sujeto en la secuencia se actualizaría su género en la celda reemplazando así el género del sujero previo.
+
+            \item En este tercer paso se produce la actualización del estado anterior $C_{t-1}$ en $C_t$, logrado esto en los pasos previos. Primero se olvidan los estados previos mediante $f_t$, se computa los nuevos valores mediante $i_t*\tilde{C_t}$ dándonos esto el nuevo valor para el estado $C_t$. 
+            \begin{equation}
+                    C_t = f_t* C_{t-1} + i_t*\tilde{C_t}
+            \end{equation}
+
+            \item Finalmente se procede a emitir un valor de salida para la celda, mas éste valor debe de ser filtrado. El primer paso es a través de una sigmoide se decide qué se debe de emitir $o_t$, luego el estado actual de la celda $C_t$ es evaluado por una Tangente Hiperbólica y finalmente multiplicado por el resultado de $o_t$, filtrándose así la salida.
+
+            \begin{equation}
+                \begin{aligned}
+                    o_t &= \sigma(W_o\cdot{[h_{t-1}, x_t]} + b_o) \\
+                    h_t &=  o_t*\text{tanh}(C_t)
+                \end{aligned}
+            \end{equation}
         \end{itemize}
-.
-
-
-
-
     [Understanding LSTMs]
     \subsection{Redes Seq2Seq}
+    Una implementación Seq2Seq consiste en dos redes recurrentes (RNN) enlazadas, una siendo codificadora y la otra decodificadora. La tarea de la codificador es leer una secuencia de entrada y emitir un contexto a partir del último estado oculto $h_t$ a partir de lo que considere importante en la secuencia de entrada. Posteriormente se tiene una red decodificadora la cual utiliza una función softmax sobre el vocabulario a utilizar para así emitir una secuencia de salida.
+
+    [se2seq architecture]
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{img/Seq2Seq.png}
+        \caption{Comportamiendo de una red Seq2Seq.}
+    \end{figure}
     [Chatbot]
 
     \section{Corpus}

@@ -25,3 +25,5 @@ doc/*.fls
 doc/*.log
 doc/*.run.xml
 doc/*.synctex.gz 
+doc/*.bbl
+doc/*.blg
