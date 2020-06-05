@@ -167,8 +167,47 @@
     Existen varios retos para el modelo Seq2Seq y uno de ellos es la variabilidad de la longitud de la secuencias, pues la longitud de las secuencias de entrada a procesar es indiscutiblemente variable. Otro problema es la dimención del vocabulario a utilizar, pues es ineficiente aplicar una función softmax a cada palabra de nuestro vocabulario\cite{Ramamoorthy}.
 
     \subsection{Relleno de Oraciones (Padding)}
-    \subsection{Empaquetado (Bucketing)}
+    Previo al entrenamiento del modelo, el corpus es manipulado con el propósito de estandarizar la longitud de las secuencias mediante el rellenado o \emph{padding}, lográndose tras el uso de los siguientes comodines:
+
+    \begin{itemize}
+        \item \textbf{EOS}: Denotándo el Fin de la secuencia (\emph{End of sentence}).
+        \item \textbf{PAD}: Relleno.
+        \item \textbf{GO}: Bandera de inicio de la decodificación.
+        \item \textbf{UNK}: Palabra desconocida no pertinente al vocabulario (\emph{Unknown}).
+    \end{itemize}
+
+    A modo de ilustración, y haciéndole saber al lector que este y los siguientes ejemplos son en el idioma inglés, pues el corpus utilizado durante el experimento está en dicho idioma, se tiene la siguiente iteracción:
+
+    Pregunta: How are you? \\
+    Respuesta: I am fine
+
+    Asumiendo que estandarizamos nuestro corpus o conjunto de datos para una longitud de diéz caracteres, tendríamos lo siguiente:
+
+    Pregunta: [PAD, PAD, PAD, PAD, PAD, PAD, `?', `you', `are', `How'] \\
+    Respuesta: [GO, `I', `am', `fine', `.', EOS, PAD, PAD, PAD, PAD]
+
+    \subsection{Ternas (Bucketing)}
+    En el apartado anterior se resolvió un primer problema, pero digamos, si tenemos que nuestra secuencia de entrada más larga en nuestro conjunto de datos o corpus es de cien palabras, para el caso `how are you?' necesitaríamos 96 rellenos. Esto nos estaría distorcionando la información para el caso referido.
+
+    Es por ello que se propuso en la implementación de estudo el uso de ternas de distintos tamaños tales como: $[(5,10), (10,15), (20,25), (40,50)]$. Las ternas fueron utilizadas del siguiente modo: si una pregunta consta de 4 elementos y así su respuesta como lo fue en el ejemplo previo, éste par fue puesto en la terna  $(5,10)$, rellenándose la pregunta a una longitud $5$ y la respuesta a una longitud $10$.
+
+    Ilustrando ésta implementación para el ejemplo de la sección previa, tendríamos:
+
+    Pregunta: [PAD, `?', `you', `are', `How']\\
+    Respuesta: [GO, `I', `am', `fine', `.', EOS, PAD, PAD, PAD, PAD]
+
     \subsection{Contextualización de Palabras (Word Embedding)}
+
+    La contextualización de palabras es una técnica para el aprendizaje de representaciones densas de palabras dentro de un vector de reducida dimención. Se puede valorizar cada palabra como un punto en un espacio y tal espacio es representado por el vector ya referido. Relaciones semanticas entre palabras son obtenidas mediante ésta técnica pues tienen propiedades aproximadas.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{img/we1.png}
+        \caption{Composición interna de una LSTM.}
+    \end{figure}
+
+    Ésta tarea es típicamente aplicada en la primera fase de la red y esto se conoce como \emph{Embeding Layer}, donde se asocia una palabra (index to word in vocabulary) del vocabulario para un vector del tamaño dado. Para la arquitectura Seq2Seq los pesos de la capa \emph{Embeding Layer} son entrenados en conjunto con otros parámetros del modelo\cite{Ramamoorthy}.
+
     \subsection{Attention Mechanism}
     \subsection{Código}
 
