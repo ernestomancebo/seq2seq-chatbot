@@ -13,6 +13,13 @@
 \usepackage{authblk}
 \usepackage{array}
 
+% Bibliography
+\addbibresource{./bib/Ma_2020.bib}
+\addbibresource{./bib/rnn-effectiveness.bib}
+\addbibresource{./bib/Understanding_LSTM.bib}
+\addbibresource{./bib/Ramamoorthy.bib}
+\addbibresource{./bib/Ramamoorthy2.bib}
+
 % Parragraph formatting
 \setlength{\parskip}{1em}
 
@@ -75,8 +82,7 @@
         \caption{Ilustración de una RNN.}
     \end{figure}
 
-    En la representación se tiene un trozo de red $A$ la cual toma como entrada un $x_t$ y emite un valor $h_t$, de este modo, utilizando el bucle mencionado, la información pasa al siguiente paso dentro de la red. Dicho ya esto, podemos ilustrar una red recurrente como una red con múltiples copias de sí misma.
-    [Understanding LSTMs]
+    En la representación se tiene un trozo de red $A$ la cual toma como entrada un $x_t$ y emite un valor $h_t$, de este modo, utilizando el bucle mencionado, la información pasa al siguiente paso dentro de la red. Dicho ya esto, podemos ilustrar una red recurrente como una red con múltiples copias de sí misma\cite{Understanding_LSTM}.
 
     \begin{figure}[H]
         \centering
@@ -84,8 +90,7 @@
         \caption{Ilustración de la evolución de una RNN a través del tiempo $t$.}
     \end{figure}
     
-    Este comportamiento en secuencia es lo que enlaza las RNN con secuencias y listas, por ellos, tales redes son exitosas para problemas de reconocimiento de voz, modelado del lenguaje, traducción, contextualización de imágenes y otras aplicaciones relacionadas.
-    [RNN Andej]
+    Este comportamiento en secuencia es lo que enlaza las RNN con secuencias y listas, por ellos, tales redes son exitosas para problemas de reconocimiento de voz, modelado del lenguaje, traducción, contextualización de imágenes y otras aplicaciones relacionadas\cite{rnn-effectiveness}.
 
     \subsection{Redes Long Short-Term Memory - LSTM}
     Una variante las RNN capáz de aprender a partir de dependencias a largo plazo es la Long Short Term Memory, muchas veces llamadas tan solo LSTM.
@@ -132,7 +137,7 @@
                     C_t = f_t* C_{t-1} + i_t*\tilde{C_t}
             \end{equation}
 
-            \item Finalmente se procede a emitir un valor de salida para la celda, mas éste valor debe de ser filtrado. El primer paso es a través de una sigmoide se decide qué se debe de emitir $o_t$, luego el estado actual de la celda $C_t$ es evaluado por una Tangente Hiperbólica y finalmente multiplicado por el resultado de $o_t$, filtrándose así la salida.
+            \item Finalmente se procede a emitir un valor de salida para la celda, mas éste valor debe de ser filtrado. El primer paso es a través de una sigmoide se decide qué se debe de emitir $o_t$, luego el estado actual de la celda $C_t$ es evaluado por una Tangente Hiperbólica y finalmente multiplicado por el resultado de $o_t$, filtrándose así la salida\cite{Understanding_LSTM}.
 
             \begin{equation}
                 \begin{aligned}
@@ -141,25 +146,35 @@
                 \end{aligned}
             \end{equation}
         \end{itemize}
-    [Understanding LSTMs]
-    \subsection{Redes Seq2Seq}
-    Una implementación Seq2Seq consiste en dos redes recurrentes (RNN) enlazadas, una siendo codificadora y la otra decodificadora. La tarea de la codificador es leer una secuencia de entrada y emitir un contexto a partir del último estado oculto $h_t$ a partir de lo que considere importante en la secuencia de entrada. Posteriormente se tiene una red decodificadora la cual utiliza una función softmax sobre el vocabulario a utilizar para así emitir una secuencia de salida.
 
-    [se2seq architecture]
+    \subsection{Redes Seq2Seq}
+    Una implementación Seq2Seq consiste en dos redes recurrentes (RNN) enlazadas, una siendo codificadora y la otra decodificadora. La tarea de la codificador es leer una secuencia de entrada y emitir un contexto a partir del último estado oculto $h_t$ a partir de lo que considere importante en la secuencia de entrada. Posteriormente se tiene una red decodificadora la cual utiliza una función softmax sobre el vocabulario a utilizar para así emitir una secuencia de salida\cite{Ramamoorthy}\cite{Ramamoorthy2}.
 
     \begin{figure}[H]
         \centering
         \includegraphics[width=\linewidth]{img/Seq2Seq.png}
         \caption{Comportamiendo de una red Seq2Seq.}
     \end{figure}
-    [Chatbot]
+
+    Se aprecia en la parte central de un modelo Seq2Seq lo que se conoce como \emph{Though Vector} o vector de pensamiento, el cuál representa la intención de la secuencia de entrada y a partir de aquí la sección decodificadora del modelo genera una secuencia a emitir, símbolo tras símbolo, palabra en este caso, donde cada símbolo es influenciado por el anterior.
 
     \section{Corpus}
+    El corpus utilizado para entrenar esta red corresponde a un conjunto de más de 700 mil mensajes procedentes de la red social Twitter. Este corpus es provisto por el respositorio chat\_corpus\cite{Ma_2020} donde detalla que para las líneas impares corresponden a \emph{tweets} y las líneas pares corresponden a respuestas al \emph{tweet} predecesor.
+
     \section{Implementación}
+
+    \subsection{Retos de la Implementación}
+    Existen varios retos para el modelo Seq2Seq y uno de ellos es la variabilidad de la longitud de la secuencias, pues la longitud de las secuencias de entrada a procesar es indiscutiblemente variable. Otro problema es la dimención del vocabulario a utilizar, pues es ineficiente aplicar una función softmax a cada palabra de nuestro vocabulario\cite{Ramamoorthy}.
+
+    \subsection{Relleno de Oraciones (Padding)}
+    \subsection{Empaquetado (Bucketing)}
+    \subsection{Contextualización de Palabras (Word Embedding)}
+    \subsection{Attention Mechanism}
+    \subsection{Código}
 
     \section{Resultados}
     \section{Conclusiones}
 
     \pagebreak
-    % \printbibliography[title={Bibliografía}]
+    \printbibliography[title={Bibliografía}]
 \end{document}
