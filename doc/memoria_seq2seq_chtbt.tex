@@ -19,6 +19,7 @@
 \addbibresource{./bib/Understanding_LSTM.bib}
 \addbibresource{./bib/Ramamoorthy.bib}
 \addbibresource{./bib/Ramamoorthy2.bib}
+\addbibresource{./bib/bahdanau2014neural.bib}
 
 % Parragraph formatting
 \setlength{\parskip}{1em}
@@ -70,7 +71,7 @@
         \item Capaces de procesar secuencias de distintas longitudes.
         \item Detectan información relevante que pueden aparecer en distintas posiciones de la secuencia.
     \end{itemize}
-    A modo de ejemplificar la última característica de estas redes se tiene \emph{"El 23 de Enero salí a pasear"} o \emph{"Salí a pasear el 23 de Enero"}. 
+    A modo de ejemplificar la última característica de estas redes se tiene \emph{`El 23 de Enero salí a pasear'} o \emph{`Salí a pasear el 23 de Enero'}. 
 
     Las RNN no conocen el significado de los símbolos que procesan, éstas infieren en el significado a partir de la extructura de la secuencia y la posición de los símbolos. Por otro lado, una RNN es capáz de lograr todo lo mencionado por el hecho de que tales redes tienen un estado al que en ocasiones se le puede escuchar referir como \emph{memoria}.
 
@@ -78,7 +79,7 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\linewidth]{img/RNN-rolled.png}
+        \includegraphics[width=0.2\linewidth]{img/RNN-rolled.png}
         \caption{Ilustración de una RNN.}
     \end{figure}
 
@@ -101,14 +102,14 @@
 
         \begin{figure}[H]
             \centering
-            \includegraphics[width=\linewidth]{img/LSTM3-chain.png}
+            \includegraphics[width=0.8\linewidth]{img/LSTM3-chain.png}
             \caption{Ilustración de una red LSTM.}
         \end{figure}
 
         A continuación tenemos una radiografía de lo que conforma una red LSTM.
         \begin{figure}[H]
             \centering
-            \includegraphics[width=\linewidth]{img/LSTM3-cell-A.png}
+            \includegraphics[width=0.7\linewidth]{img/LSTM3-cell-A.png}
             \caption{Composición interna de una LSTM.}
         \end{figure}
 
@@ -203,13 +204,29 @@
     \begin{figure}[H]
         \centering
         \includegraphics[width=\linewidth]{img/we1.png}
-        \caption{Composición interna de una LSTM.}
+        \caption{Word Embedding.}
     \end{figure}
 
     Ésta tarea es típicamente aplicada en la primera fase de la red y esto se conoce como \emph{Embeding Layer}, donde se asocia una palabra (index to word in vocabulary) del vocabulario para un vector del tamaño dado. Para la arquitectura Seq2Seq los pesos de la capa \emph{Embeding Layer} son entrenados en conjunto con otros parámetros del modelo\cite{Ramamoorthy}.
 
-    \subsection{Attention Mechanism}
-    \subsection{Código}
+    \subsection{Mecanismo de Atención (Attention Mechanism)}
+    Una limitante de la arquitectura Seq2Seq es que la secuencia de entrada debe de ser llevada a una longitud determinada, y se ha de tomar en cuenta que a medida que incrementa la secuencia ésta es más propensa a la pérdida de información, por ello una red Seq2Seq tiende a dar mejores resultados para secuencias cortas.
+
+    Es por lo planteado anteriormente que surge lo conocido como Mecanismo de Atención (\emph{Attention Mechanism})\cite{bahdanau2014neural}, lo cual consiste en que la sección decodificadora de la red observa de manera selectiva a la secuencia de entrada mientras decodifica, tomando la carga del codificador para codificar piezas útiles de información.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.4\linewidth]{img/attention1.png}
+        \caption{Mecanismo de Atención.}
+    \end{figure}
+
+    Para cada instante de tiempo el decodificador en vez de tomar un contexto de tamaño fijo (el último estado del codificador), un vector contexto distinto $c_i$ es utilizado para generar la letra $y_i$, donde para el vector contexto $c_i$ es la suma de los pesos de los estados ocultos en el codificador $c_i=\sum_{j=1}^{n}\alpha_{ij}h_j$, siendo $n$ la longitud de la secuencia de entrada, $h_j$ el estado oculto en el instante de tiempo $j$; $\alpha_{ij}=\exp(e_{ij})/\sum_{k=1}^n\exp(e_{ik})$, y finalmente $e_{ij}$ representa el modelo que decodifica el estado oculto en $s_{i-1}$ y el $j$-ésimo estado oculto del codificador. Éste modelo es categorizado como una Red Neuronal hacia delante (\emph{feedforward}) la cual entrena en conjunto con el resto del modelo.
+
+    Cada estado oculto en el codificador encapsula información acerca del contexto local en la oración. A medida que se genera data desde la palabra $0$ hasta la palabra $n$, la información asociada al contexto mencionado se desvanece. Es por ello la necesidad de que el decodificador sepa acerca de cada contexto local, pues distintas partes de la secuencia de entrada dan pie a las piezas a utilizar en la secuencia de salida. 
+
+    El modelo mencionado nos da una medida de qué tan bien una salida en la posición $i$ encaja con la entrada en la posición $j$, partiendo de ello se toma la suma de los contextos de entrada o estados ocultos a fin de generar una secuencia de salida.
+
+    \section{Implementación del Diseño}
 
     \section{Resultados}
     \section{Conclusiones}
