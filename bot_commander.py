@@ -1,5 +1,5 @@
-from main import (MODEL_NAME, build_seq2seq_model, init_inference, initial_setup,
-                  load_model_weights, load_vocabulary)
+from main import (MODEL_NAME, build_seq2seq_model, init_inference,
+                  initial_setup, load_model_weights, load_vocabulary)
 
 CORPUS_NAME = 'twitter'
 
