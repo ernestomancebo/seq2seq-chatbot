@@ -18,6 +18,9 @@ MODEL_NAME = 'model.npz'
 
 
 def initial_setup(data_corpus):
+    """Loads data from the given corpus under the data folder. Encoded pad sequences (0) are removed.
+            returns tuple( metadata, trainX, trainY, testX, testY, validX, validY )
+    """
     metadata, idx_q, idx_a = data.load_data(
         PATH='data/{}/'.format(data_corpus))
     (trainX, trainY), (testX, testY), (validX,
@@ -28,10 +31,21 @@ def initial_setup(data_corpus):
     testY = tl.prepro.remove_pad_sequences(testY.tolist())
     validX = tl.prepro.remove_pad_sequences(validX.tolist())
     validY = tl.prepro.remove_pad_sequences(validY.tolist())
+
     return metadata, trainX, trainY, testX, testY, validX, validY
 
 
 def build_seq2seq_model(vocabulary_size, decoder_seq_length=20, emb_dim=1024):
+    """Builds a Seq2Seq model
+
+    Args:
+        vocabulary_size (int): Size of the vocabulary
+        decoder_seq_length (int, optional): Sequence length for the decoder. Defaults to 20.
+        emb_dim (int, optional): [description]. Defaults to 1024.
+
+    Returns:
+        Seq2Seq
+    """
     model = Seq2seq(
         decoder_seq_length=decoder_seq_length,
         cell_enc=tf.keras.layers.GRUCell,
@@ -44,12 +58,26 @@ def build_seq2seq_model(vocabulary_size, decoder_seq_length=20, emb_dim=1024):
 
 
 def load_model_weights(model, model_name=MODEL_NAME):
+    """Loads serialized weights in model_name into the given model
+
+    Args:
+        model (Seq2Seq): A Seq2Seq instance. See build_seq2seq_model
+        model_name (string, optional): Name of the serialized model. Defaults to MODEL_NAME.
+    """
     if os.path.exists(model_name):
         load_weights = tl.files.load_npz(name=model_name)
         tl.files.assign_weights(load_weights, model)
 
 
 def load_vocabulary(metadata):
+    """Loads encoded vocabulary from a metadata dictionary.
+
+    Args:
+        metadata (dictionary): expects to have idx2w, w2idx key entries.
+
+    Returns:
+        tuple: ( word2idx, idx2word, unk_id, pad_id, start_id, end_id, src_vocab_size )
+    """
     src_vocab_size = len(metadata['idx2w'])  # 8002 (0~8001)
 
     word2idx = metadata['w2idx']   # dict  word 2 index
