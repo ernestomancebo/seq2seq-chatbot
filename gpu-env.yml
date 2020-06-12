@@ -1,0 +1,14 @@
+name: seq2seq-chatbot
+dependencies:
+  - notebook
+  - ipykernel
+  - ipython
+  - pydot
+  - tensorflow-gpu
+  - scikit-learn
+  - numpy
+  - click
+  - tqdm
+  - nltk
+  - pip:
+      - tensorlayer
