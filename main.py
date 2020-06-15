@@ -15,6 +15,7 @@ from tqdm import tqdm
 from data.twitter import data
 
 MODEL_NAME = 'model.npz'
+import pprint
 
 
 def initial_setup(data_corpus):
@@ -52,7 +53,7 @@ def build_seq2seq_model(vocabulary_size, decoder_seq_length=20, emb_dim=1024):
         cell_dec=tf.keras.layers.GRUCell,
         n_layer=3,
         n_units=256,
-        embedding_layer=tl.layers.Embedding(vocabulary_size=vocabulary_size, embedding_size=emb_dim),)
+        embedding_layer=tl.layers.Embedding(vocabulary_size=vocabulary_size, embedding_size=emb_dim), )
 
     return model
 
@@ -80,11 +81,11 @@ def load_vocabulary(metadata):
     """
     src_vocab_size = len(metadata['idx2w'])  # 8002 (0~8001)
 
-    word2idx = metadata['w2idx']   # dict  word 2 index
-    idx2word = metadata['idx2w']   # list index 2 word
+    word2idx = metadata['w2idx']  # dict  word 2 index
+    idx2word = metadata['idx2w']  # list index 2 word
 
-    unk_id = word2idx['unk']   # 1
-    pad_id = word2idx['_']     # 0
+    unk_id = word2idx['unk']  # 1
+    pad_id = word2idx['_']  # 0
 
     start_id = src_vocab_size  # 8002
     end_id = src_vocab_size + 1  # 8003
@@ -101,6 +102,7 @@ def init_inference(model_, word2idx, idx2word, unk_id, start_id):
     """
     Inits the inference function, which deppends on the given parameters
     """
+
     def inference(seed, top_n):
         model_.eval()
         seed_id = [word2idx.get(w, unk_id) for w in seed.split(" ")]
@@ -139,6 +141,7 @@ if __name__ == "__main__":
     num_epochs = 50
     decoder_seq_length = 20
     model_ = build_seq2seq_model(vocabulary_size, decoder_seq_length)
+    model_
     load_model_weights(model_)
 
     optimizer = tf.optimizers.Adam(learning_rate=0.001)
@@ -153,7 +156,6 @@ if __name__ == "__main__":
         total_loss, n_iter = 0, 0
         for X, Y in tqdm(tl.iterate.minibatches(inputs=trainX, targets=trainY, batch_size=batch_size, shuffle=False),
                          total=n_step, desc='Epoch[{}/{}]'.format(epoch + 1, num_epochs), leave=False):
-
             X = tl.prepro.pad_sequences(X)
             _target_seqs = tl.prepro.sequences_add_end_id(Y, end_id=end_id)
             _target_seqs = tl.prepro.pad_sequences(
