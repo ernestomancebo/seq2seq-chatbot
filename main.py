@@ -17,6 +17,13 @@ from data.twitter import data
 MODEL_NAME = 'model.npz'
 import pprint
 
+import datetime
+
+current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
 def initial_setup(data_corpus):
     """Loads data from the given corpus under the data folder. Encoded pad sequences (0) are removed.
@@ -184,6 +191,9 @@ if __name__ == "__main__":
         # printing average loss after every epoch
         print('Epoch [{}/{}]: loss {:.4f}'.format(
             epoch + 1, num_epochs, total_loss / n_iter))
+
+        with train_summary_writer.as_default():
+            tf.compat.v2.summary.scalar('loss', total_loss, step=epoch)
 
         for seed in seeds:
             print("Query >", seed)
