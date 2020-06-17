@@ -44,6 +44,9 @@ def build_seq2seq_model(vocabulary_size, decoder_seq_length=20, emb_dim=1024):
 
 
 def load_model_weights(model, model_name=MODEL_NAME):
+    """
+        Weights serialized at the model_name npz file are loaded into the given model. 
+    """
     if os.path.exists(model_name):
         load_weights = tl.files.load_npz(name=model_name)
         tl.files.assign_weights(load_weights, model)
