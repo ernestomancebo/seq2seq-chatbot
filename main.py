@@ -1,6 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datetime
+import pprint
 import os
 
 import numpy as np
@@ -17,7 +19,17 @@ from data.twitter import data
 MODEL_NAME = 'model.npz'
 
 
+current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+
+
 def initial_setup(data_corpus):
+    """Loads data from the given corpus under the data folder. Encoded pad sequences (0) are removed.
+            returns tuple( metadata, trainX, trainY, testX, testY, validX, validY )
+    """
     metadata, idx_q, idx_a = data.load_data(
         PATH='data/{}/'.format(data_corpus))
     (trainX, trainY), (testX, testY), (validX,
@@ -28,24 +40,38 @@ def initial_setup(data_corpus):
     testY = tl.prepro.remove_pad_sequences(testY.tolist())
     validX = tl.prepro.remove_pad_sequences(validX.tolist())
     validY = tl.prepro.remove_pad_sequences(validY.tolist())
+
     return metadata, trainX, trainY, testX, testY, validX, validY
 
 
 def build_seq2seq_model(vocabulary_size, decoder_seq_length=20, emb_dim=1024):
+    """Builds a Seq2Seq model
+
+    Args:
+        vocabulary_size (int): Size of the vocabulary
+        decoder_seq_length (int, optional): Sequence length for the decoder. Defaults to 20.
+        emb_dim (int, optional): [description]. Defaults to 1024.
+
+    Returns:
+        Seq2Seq
+    """
     model = Seq2seq(
         decoder_seq_length=decoder_seq_length,
         cell_enc=tf.keras.layers.GRUCell,
         cell_dec=tf.keras.layers.GRUCell,
         n_layer=3,
         n_units=256,
-        embedding_layer=tl.layers.Embedding(vocabulary_size=vocabulary_size, embedding_size=emb_dim),)
+        embedding_layer=tl.layers.Embedding(vocabulary_size=vocabulary_size, embedding_size=emb_dim), )
 
     return model
 
 
 def load_model_weights(model, model_name=MODEL_NAME):
-    """
-        Weights serialized at the model_name npz file are loaded into the given model. 
+    """Loads serialized weights in model_name into the given model
+
+    Args:
+        model (Seq2Seq): A Seq2Seq instance. See build_seq2seq_model
+        model_name (string, optional): Name of the serialized model. Defaults to MODEL_NAME.
     """
     if os.path.exists(model_name):
         load_weights = tl.files.load_npz(name=model_name)
@@ -53,13 +79,21 @@ def load_model_weights(model, model_name=MODEL_NAME):
 
 
 def load_vocabulary(metadata):
+    """Loads encoded vocabulary from a metadata dictionary.
+
+    Args:
+        metadata (dictionary): expects to have idx2w, w2idx key entries.
+
+    Returns:
+        tuple: ( word2idx, idx2word, unk_id, pad_id, start_id, end_id, src_vocab_size )
+    """
     src_vocab_size = len(metadata['idx2w'])  # 8002 (0~8001)
 
-    word2idx = metadata['w2idx']   # dict  word 2 index
-    idx2word = metadata['idx2w']   # list index 2 word
+    word2idx = metadata['w2idx']  # dict  word 2 index
+    idx2word = metadata['idx2w']  # list index 2 word
 
-    unk_id = word2idx['unk']   # 1
-    pad_id = word2idx['_']     # 0
+    unk_id = word2idx['unk']  # 1
+    pad_id = word2idx['_']  # 0
 
     start_id = src_vocab_size  # 8002
     end_id = src_vocab_size + 1  # 8003
@@ -76,6 +110,7 @@ def init_inference(model_, word2idx, idx2word, unk_id, start_id):
     """
     Inits the inference function, which deppends on the given parameters
     """
+
     def inference(seed, top_n):
         model_.eval()
         seed_id = [word2idx.get(w, unk_id) for w in seed.split(" ")]
@@ -114,6 +149,7 @@ if __name__ == "__main__":
     num_epochs = 50
     decoder_seq_length = 20
     model_ = build_seq2seq_model(vocabulary_size, decoder_seq_length)
+    model_
     load_model_weights(model_)
 
     optimizer = tf.optimizers.Adam(learning_rate=0.001)
@@ -128,7 +164,6 @@ if __name__ == "__main__":
         total_loss, n_iter = 0, 0
         for X, Y in tqdm(tl.iterate.minibatches(inputs=trainX, targets=trainY, batch_size=batch_size, shuffle=False),
                          total=n_step, desc='Epoch[{}/{}]'.format(epoch + 1, num_epochs), leave=False):
-
             X = tl.prepro.pad_sequences(X)
             _target_seqs = tl.prepro.sequences_add_end_id(Y, end_id=end_id)
             _target_seqs = tl.prepro.pad_sequences(
@@ -157,6 +192,9 @@ if __name__ == "__main__":
         # printing average loss after every epoch
         print('Epoch [{}/{}]: loss {:.4f}'.format(
             epoch + 1, num_epochs, total_loss / n_iter))
+
+        with train_summary_writer.as_default():
+            tf.compat.v2.summary.scalar('loss', total_loss, step=epoch)
 
         for seed in seeds:
             print("Query >", seed)

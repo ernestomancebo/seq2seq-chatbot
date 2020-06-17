@@ -15,3 +15,18 @@ http://karpathy.github.io/2015/05/21/rnn-effectiveness/
 https://github.com/Marsan-Ma/chat_corpus/blob/master/twitter_en.txt.gz
 [Corpus repo description] - Ma_2020
 https://github.com/marsan-ma/chat_corpus
+
+[Recurrent Networks]
+https://danijar.com/introduction-to-recurrent-networks-in-tensorflow/
+
+CODE
+
+TensorLayer
+https://tensorlayer.readthedocs.io/en/latest/
+
+[Embeding Layer]
+https://tensorlayer.readthedocs.io/en/latest/modules/layers.html?highlight=embeding#tensorlayer.layers.Embedding
+[Adam Solver]
+https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/Adam
+[cross_entropy_seq_with_mask]
+https://tensorlayer.readthedocs.io/en/latest/modules/cost.html?highlight=cross_entropy_seq_with_mask#tensorlayer.cost.cross_entropy_seq_with_mask

@@ -1,0 +1,62 @@
+DATA PRE PROCESSING
+    Process Data Workflow (process_data > load_data)
+        lowercase words
+        filter by whitelist
+        filter by bucketing
+        tokenize em by plitting
+        Index Words (index_)
+        zero pad too short sentences
+        - Serialize Ids
+        - Serialize dictionaries and indexed values
+
+    Index Words (index_)
+        Obtiene la frecuencia de distribución de cada palabra
+        Obitiene las palabras más comunes a partir de 'vocab_size' = 6K para el experimento
+        index2word: Se indexan tales palabras, teniendo en primer lugar '_' y 'unk' como relleno
+        word2index: Se hace un diccionario llave/valor, donde la llave es la palabra, el valor es la posición en la clasificación para index2word
+
+MODEL TRAINING/BUILDING
+    decoder_seq_length -> vocabulary_size
+    cells: GRU
+    model = Seq2seq(
+        decoder_seq_length=decoder_seq_length,
+        cell_enc=tf.keras.layers.GRUCell,
+        cell_dec=tf.keras.layers.GRUCell,
+        n_layer=3,
+        n_units=256,
+        embedding_layer=tl.layers.Embedding(vocabulary_size=vocabulary_size, embedding_size=emb_dim),)
+
+MODEL TRAINING
+    Hyper parameters
+        src_len = len(trainX)
+        tgt_len = len(trainY)
+        
+        batch_size = 32
+        n_step = src_len // batch_size
+        num_epochs = 50
+        decoder_seq_length = 20
+        optimizer = tf.optimizers.Adam(learning_rate=0.001)
+        model_.train()
+
+    Por cada num_epochs
+        Genera un minibatch de tamaño batch_size
+
+        En cuanto a Encoders (input)
+            pad_sequences -> lleva todas las secuencias de entrada al mismo tamaño
+            sequences_add_end_id -> agrega end_id
+
+        En cuanto a Decoders (output)
+            pad_sequences -> target
+            sequences_add_start_id -> agrega start_id y no remove_last
+            pad_sequences _decode_seqs para las output seq luego de lo anterior.
+            sequences_get_mask -> un filtro donde todo es 1 excepto el padding [[1 1 1 1 0 0], [1 1 1 1 1 0]] -> [[4, 0, 5, 3, 0, 0],[5, 3, 9, 4, 9, 0]]
+
+            Se calcula la pérdida/error mediante cross_entropy_seq_with_mask
+            Se actualizan los pesos
+
+DATA INFERENCE
+    Lleva el modelo a modo "eval"
+    Crea un vector de índices a partir word2idx, siento unk si no haya la palabra.
+    El modelo analiza la secuencia de entrada
+         model_(inputs=[[seed_id]], seq_length=20, start_token=start_id, top_n=top_n)
+    La secuencia de retorno es un vectór con los índices de la inferencia. Se crea una oración haciendo una traducción mediante el diccionario idx2word
