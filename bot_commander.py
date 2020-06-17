@@ -24,5 +24,5 @@ while True:
     inference = init_inference(model_, word2idx, idx2word, unk_id, start_id)
     top_n = 3
     for i in range(top_n):
-        sentence = inference(seed, top_n)
+        sentence = inference(seed.lower(), top_n)
         print(" >", ' '.join(sentence))
