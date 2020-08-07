@@ -1,3 +1,4 @@
+import data.twitter.data as data
 from main import (MODEL_NAME, build_seq2seq_model, init_inference,
                   initial_setup, load_model_weights, load_vocabulary)
 
@@ -24,5 +25,5 @@ while True:
     inference = init_inference(model_, word2idx, idx2word, unk_id, start_id)
     top_n = 3
     for i in range(top_n):
-        sentence = inference(seed.lower(), top_n)
+        sentence = inference(data.filter_line(seed.lower(), data.EN_WHITELIST), top_n)
         print(" >", ' '.join(sentence))
